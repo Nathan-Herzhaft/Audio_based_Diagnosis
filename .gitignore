@@ -127,3 +127,7 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+
+#Files to ignore
+PhysioNet_Challenge/data/
