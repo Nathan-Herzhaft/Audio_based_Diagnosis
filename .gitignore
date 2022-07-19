@@ -131,3 +131,4 @@ dmypy.json
 
 #Files to ignore
 PhysioNet_Challenge/data/
+Pistes.txt
