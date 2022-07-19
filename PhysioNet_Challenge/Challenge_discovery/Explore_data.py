@@ -1,6 +1,7 @@
 # %%
-from Load_data import *
+from Challenge_discovery.Load_data import *
 import pandas as pd
+import scipy.stats
 
 
 
@@ -61,7 +62,8 @@ def repartition_labels(murmurs) :
     onehot = {'Present':0,'Unknown':1,'Absent':2}
     for label in murmurs :
         count[onehot[label]] += 1
-    return count
+    stats = {'Present':count[0],'Unknown':count[1],'Absent':count[2]}
+    return stats
 repartition_labels(murmurs)
 # %%
 murmurs = pd.DataFrame(murmurs)

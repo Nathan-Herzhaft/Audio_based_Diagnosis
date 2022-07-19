@@ -5,7 +5,6 @@ import scipy.io
 import scipy.io.wavfile
 
 
-
 def is_number(x):
     try:
         float(x)

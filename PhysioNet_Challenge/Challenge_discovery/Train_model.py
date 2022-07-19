@@ -5,17 +5,15 @@
 #
 ################################################################################
 
-from Load_data import *
+from Challenge_discovery.Load_data import *
 import numpy as np
-import joblib
 from sklearn.impute import SimpleImputer
 from sklearn.ensemble import RandomForestClassifier
 from xgboost import XGBRegressor
 from sklearn.metrics import mean_absolute_error
-from sklearn.metrics import accuracy_score, multilabel_confusion_matrix
+from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split
 import matplotlib.pyplot as plt
-import seaborn as sb
 
 
 
@@ -234,7 +232,4 @@ def compare_XGBoosts_preds(lr_min,lr_max,n_estimators,X_train, X_val, y_train, y
 
 #Best Mean Absolute Error with probabilities ouput is obtained with lr = 0.03
 #Best Mean Absolute Error with prediction output is obtained with lr = 0.04258
-
-lr_opti = compare_XGBoosts_preds(0.001,0.1,1000,X_train, X_val, y_train, y_val, display=True, verbose = True)
-lr_opti
 # %%
