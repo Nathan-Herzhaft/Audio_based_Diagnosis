@@ -10,7 +10,7 @@ import numpy as np
 from sklearn.impute import SimpleImputer
 from sklearn.ensemble import RandomForestClassifier
 from xgboost import XGBRegressor
-from sklearn.metrics import mean_absolute_error
+from sklearn.metrics import mean_absolute_error, precision_score, recall_score
 from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split
 import matplotlib.pyplot as plt
@@ -117,6 +117,11 @@ def accuracy_model(model, X_val, y_val) :
     accuracy = accuracy_score(predictions, y_val)
     return accuracy
 
+def precision_model(model, X_val, y_val) :
+    predictions = model.predict(X_val)
+    accuracy = precision_score(predictions, y_val)
+    return accuracy
+
 def mae_model(model, X_val, y_val) :
     predictions = model.predict(X_val)
     mae = mean_absolute_error(predictions,y_val)
@@ -154,9 +159,10 @@ def compare_Random_Forests_mae(n_min,n_max,max_leaf_nodes,X_train, X_val, y_trai
 #Best Mean Absolute Error is obtained with n_estimators = 49
 
 
+#%%
+model = train_Random_Forest(500,5,X_train,y_train)
 
-
-
+accuracy_model(model, X_val, y_val)
 
 
 

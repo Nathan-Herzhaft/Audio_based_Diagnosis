@@ -8,12 +8,10 @@
 import os
 import numpy as np
 import pandas as pd
-import glob
+import scipy.stats
 import librosa
 
 root = 'data\\training_data'
-n_mfcc = 20
-random_state = 0
 
 
 
@@ -29,7 +27,7 @@ random_state = 0
 ################################################################################
 
 def get_locations(patientID,dataframe) :
-    recording_locations = dataframe.loc[patientID]['Recording locations:'].split('+')
+    recording_locations = dataframe.loc[dataframe['Patient ID']==patientID].sample()['Recording locations:'].values[0].split('+')
     uniques = np.unique(recording_locations).astype('<U10')
     if len(set(recording_locations)) != len(recording_locations) :
         seen = {}
@@ -52,35 +50,54 @@ def load_wavfile(patientID,location) :
 
     
     
-def get_mfccs_features_location(patientID,location) :
+def get_mfccs_features_location(patientID,location,n_mfcc) :
     recording, sampling_rate = load_wavfile(patientID,location)
     mfccs = np.mean(librosa.feature.mfcc(y=recording,sr=sampling_rate,n_mfcc=n_mfcc).T,axis=0)
     features = np.array(mfccs).reshape([-1,1])
     return features
 
 
-def get_mfccs_features(patientID,dataframe) :
+def get_mfccs_features(patientID,dataframe, n_mfcc) :
     locations = get_locations(patientID,dataframe)
-    features = np.zeros((n_mfcc, 5), dtype=float)
-    location_order={'AV':0,'PV':1,'TV':2,'MV':3,'Phc':4,'AV_1':0,'PV_1':1,'TV_1':2,'MV_1':3,'Phc_1':4}
+    features = np.full([n_mfcc, 4], np.nan, dtype=float)
+    location_order={'AV':0,'PV':1,'TV':2,'MV':3,'AV_1':0,'PV_1':1,'TV_1':2,'MV_1':3}
     for location in locations :
+        if 'Phc' in location :
+            break
         check = str(patientID)+'_'+location+'.wav'
         if os.path.isfile(os.path.join(root,check)) :
-            features[:,location_order[location]] = get_mfccs_features_location(patientID,location).reshape(20,)
+            features[:,location_order[location]] = get_mfccs_features_location(patientID,location,n_mfcc).reshape(n_mfcc,)
     return features.T.flatten()
 
 
 def get_patient_features(patientID,dataframe) :
-    row = dataframe.loc[patientID].drop(['Recording locations:','Murmur'])
+    row = dataframe.loc[dataframe['Patient ID']==patientID].sample().drop(['Patient ID','Recording locations:','Sex','Pregnancy status','Murmur'],axis=1)
     values = row.values.astype('float32')
-    features = values
+    features = values[0]
     return features
 
 
-def get_features(patientID,dataframe) :
-    mfccs_features = get_mfccs_features(patientID,dataframe)
+def get_signal_features(patientID,dataframe) :
+    locations = get_locations(patientID,dataframe)
+    features = np.full([3, 4], np.nan, dtype=float)
+    location_order={'AV':0,'PV':1,'TV':2,'MV':3,'AV_1':0,'PV_1':1,'TV_1':2,'MV_1':3}
+    for location in locations :
+        if 'Phc' in location :
+            break
+        check = str(patientID)+'_'+location+'.wav'
+        if os.path.isfile(os.path.join(root,check)) :
+            recording, sampling_rate = load_wavfile(patientID,location)
+            features[0,location_order[location]] = np.mean(recording)
+            features[1,location_order[location]] = np.var(recording)
+            features[2,location_order[location]] = scipy.stats.skew(recording)
+    return features.T.flatten()
+
+
+def get_features(patientID,dataframe,n_mfcc) :
+    mfccs_features = get_mfccs_features(patientID,dataframe,n_mfcc)
     patient_features = get_patient_features(patientID,dataframe)
-    features = np.concatenate((patient_features,mfccs_features),axis=0)
+    signal_features = get_signal_features(patientID,dataframe)
+    features = np.concatenate((patient_features,mfccs_features,signal_features),axis=0)
     return features
 
 
@@ -101,7 +118,7 @@ def get_dataframe() :
     table = pd.read_csv('data\\training_data.csv')
     table = table[['Patient ID','Recording locations:','Age','Sex','Height','Weight','Pregnancy status','Murmur']]
     table.drop(table[table.Murmur == 'Unknown'].index, inplace=True)
-    table.set_index('Patient ID', inplace=True)
+    #table.set_index('Patient ID', inplace=True)
     
     onehot={
         'Child':6*12,
@@ -119,15 +136,15 @@ def get_dataframe() :
     return table
 
 
-def get_X(dataframe,verbose=1) :
+def get_X(dataframe,n_mfcc,verbose=1) :
     X = []
     if verbose >= 1 :
             print("Preprocessing X data...")
     for i in range(len(dataframe)) :
         if verbose >= 2 :
             print(f"Files processed :    {i+1}/{len(dataframe)}")
-        patientID = dataframe.iloc[i].name
-        current_features = get_features(patientID,dataframe)
+        patientID = dataframe.iloc[i]['Patient ID']
+        current_features = get_features(patientID,dataframe,n_mfcc)
         X.append(current_features)
     if verbose >= 1 :
         print("Done.")
@@ -179,15 +196,5 @@ def evaluate_dataset_balance(dataframe) :
     total = absent + present
     absent_ratio = round(10000*absent/total)/100
     present_ratio = round(10000*present/total)/100
-    print(f'Normal ratio :  {absent_ratio} %')
-    print(f'Abnormal ratio :  {present_ratio} %')
-    
-    
-#%%
-import sklearn
-data = get_dataframe()
-recording, sampling_rate = load_wavfile(9979,'AV')
-mfccs = librosa.feature.mfcc(recording, sr=sampling_rate)
-mfccs = sklearn.preprocessing.scale(mfccs, axis=1)
-librosa.display.specshow(mfccs, sr=sampling_rate, x_axis='time')
-# %%
+    print(f'Absent :  {absent}  {absent_ratio}%')
+    print(f'Present :  {present}    {present_ratio}%')
