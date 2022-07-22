@@ -22,10 +22,13 @@ Link : https://librosa.org/
 
 ---
 
-## 2. Trainig data  
+## 2. Training data  
 
 The data we use for training is provided by the challenge in opensource. It was collected from a pediatric population during two mass screening campaigns. Each patient in the data has one or more recordings from one or mor auscultation location : pulmonary valve (PV), aortic valve (AV), mitral valve (MV), and tricuspid valve (TV). The number, location, and duration of the recordings vary between patients.  
 The data needs to be downloaded from the Challenge website and stored in a floder named *data* to be read automatically by the python script.
+
+![alt text](Images\Audio.png "Signal display example")  
+--> Signal display example  
 
 ---
 
@@ -60,12 +63,19 @@ Finally, we study XGBoost model. Similarly to Random Forest, we first optimize p
 
 ## > Feature importance
 After the different model comparison, we can display the feature importance according to each model to understand which feature are relevant for a heart murmur diagnostic.
-
+git  
+  
+![alt text](Images\Feature_importance_RF.png "Feature importances")  
+--> Feature importances  
+  
 ---
 
 ## 4. Utils python file description
 The *Utils* file stores the different functions to allow a better readability of the main file.  
   
-First functions presented are preprocessing functions. To preprocess the data, we load audio file for each patient in the dataset and extract the *Mel Frequency Cepstrum Coefficient* or *MFCC* of the signal. These coefficients are used to describe an audio signal and we use them as features for our machine learning models. On top of these *MFCC*, we use as features the patient information such as Height, Weight, Age, as well as more general features of the audio signal such as mean variance and skew.  
+First functions presented are preprocessing functions. To preprocess the data, we load audio file for each patient in the dataset and extract the *Mel Frequency Cepstrum Coefficients* or *MFCC* of the signal. These coefficients are used to describe an audio signal and we use them as features for our machine learning models. On top of these *MFCC*, we use as features the patient information such as Height, Weight, Age, as well as more general features of the audio signal such as mean variance and skew.  
+  
+![alt text](Images\mfccs.png "Mel Frequency Cepstrum Coefficients over time")  
+--> Mel Frequency Cepstrum Coefficients over time  
   
 After the preprocess, we define functions that are callable directly by the main file. *get_dataframe* to intitalize the dataframe, *get_X* and *get_y* to load the preprocess data, and other useful functions for specific tasks of the main script.
