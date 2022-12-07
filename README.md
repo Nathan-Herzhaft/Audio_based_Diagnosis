@@ -1,81 +1,63 @@
-# Audio-based Diagnosis
+# Data Challenge INF554
 
 ## General Description
-This folder contains a commented pipeline of an audio based diagnosis using machine learning. This algorithm was designed as part of the PhysioNet Challenge 2022, the goal is to diagnose heart murmur using the analysis of a phonocardiogram.  
-The folder is provided with a *Diagnosis.py* file, which is the main file for training and evaluation of the models. It relies on a *Utils.py* file containing all the utils function, stored in a separate file for a better readability.  
-Link of the Challenge : https://moody-challenge.physionet.org/2022/  
+This jupyter notebook contains a commented pipeline to predict a number of retweet using machine learning.
+Our final model uses a Word2vec algorith and an XGBoost classifier. We describe in our report the choices that led to this model.
 
 ---
 
 ## 1. Libraries  
 
 We use several libraries that need to be installed upstream :
-- Librosa
-- Sklearn
+- Numpy
 - Pandas
 - Matplotlib
-- Numpy
+- sklearn
+- xgboost
+- gensim
 
-### > Librosa
-Librosa is a python library for audio and music processing. We use it to load wavefiles and process them with mel coefficient extraction  
-Link : https://librosa.org/
+### > XGBoost
+XGBoost is a python library that implements an algorithm of gradient boosting. We use it to as a classifier and compare it to other regression methods.  
+Link : https://xgboost.readthedocs.io/en/stable/
 
 ---
 
 ## 2. Training data  
 
-The data we use for training is provided by the challenge in opensource. It was collected from a pediatric population during two mass screening campaigns. Each patient in the data has one or more recordings from one or mor auscultation location : pulmonary valve (PV), aortic valve (AV), mitral valve (MV), and tricuspid valve (TV). The number, location, and duration of the recordings vary between patients.  
-The data needs to be downloaded from the Challenge website and stored in a floder named *data* to be read automatically by the python script.
-
-![alt text](Images\Audio.png "Signal display example")  
---> Signal display example  
+The data we use for training is provided by the challenge in opensource.
+The data can be used directly from kaggle on the dataset page, or using an API. If you choose to use it locally, you simply have to change the path of the file in the functions pd.read_csv() 
 
 ---
 
 ## 3. Main python file description
-The *Diagnosis* file is divided into 7 segments which can be compiled separately for a better understanding, and simplify script modifications.
+The notebook is divided into few segments which can be compiled separately for a better understanding, and simplify script modifications.
 
-1. Libraries, utils functions and global parameters
-2. Preprocess
-3. Performance measures
-4. Linear Regression model
-5. Random Forest model
-6. XGBoost model
-7. Feature importance
+1. Libraries, data loading
+2. Preprocess using word embedding
+3. Models Comparison
+4. Feature importance
+5. Final model and predictions
+6. Write the csv submission
 
-## > Libraries, utils functions and global parameters
-First segment is simply the initialization of ressources and parameters. After importing libraries, we link the main file to the *Utils* file to import the utils functions, and define global parameters such as the data set or the folder root.  
+## > Libraries, data loading
+First segment is simply the initialization of ressources and parameters. After importing libraries, we load our data and modify the index of our dataframes.
 
-## > Preprocess
-Relying on *Utils* file, we execute the preprocess pipeline and store the data in X and y variables. After a train/test split, we use a simple Imputer for missing values and perform data augmentation using SMOTE method to get a balanced dataset for training.
+## > Preprocess using word embedding
+Using Word2vec, we set up 5 embedding features and add them to our training dataset (after we trained it on the vocabulary available). On top of that, we drop the columns not required by the regression to simply the model.
 
-## > Performance measures
-Third segment is dedicated to the definition of the functions used for the performances measurement. The weighted_accuracy is the metric used by the chaleenge to sort the competitors, and it is the one we'll use to optimize our model parameters. Other metrics score are also computed to get a better comprehension of the model performances.
+## > Models Comparison
+For each considered model, we fine the optimum parameters using a grid search (except for linear regression, that doesn't need it). Then, we can find the performing model that we will use to make our predictions.
 
-## > Linear Regression model
-The first model we study is a simple Linear Regression. It doesn't need parameters tuning, so we can directly define our model and train it on the data-augmented training set.
-
-## > Random Forest model
-The second model is Random Forest. We define a function to optimize the parameters. The function is easily editable in case you need to change the parameters to optimize. After the tuning, we can define a model according to the optimized parameters and train it on the data-augmented training set.
-
-## > XGBoost model
-Finally, we study XGBoost model. Similarly to Random Forest, we first optimize parameters then train the model with data-augmented training set.
+## > Final model and predictions
+Once we chose our model, we can train it on all the training_data available (we do not need a train test split anymore), and make our predictions. After this, we can refine briefly the predictions to get only natural integers, as required for a number of retweets.
 
 ## > Feature importance
-After the different model comparison, we can display the feature importance according to each model to understand which feature are relevant for a heart murmur diagnostic.
-git  
-  
-![alt text](Images\Feature_importance_RF.png "Feature importances")  
---> Feature importances  
+After we found the finest model, it can be nice to visualize the features that were the most relevant to make the predictions. This can help us understand how we should modify our data to make better results (cf. the Timestamp modifications in the report)
+
+## > Write the csv submission
+Finally, we can write our predictions in a csv file that is in the right format for the competition 
   
 ---
 
-## 4. Utils python file description
-The *Utils* file stores the different functions to allow a better readability of the main file.  
-  
-First functions presented are preprocessing functions. To preprocess the data, we load audio file for each patient in the dataset and extract the *Mel Frequency Cepstrum Coefficients* or *MFCC* of the signal. These coefficients are used to describe an audio signal and we use them as features for our machine learning models. On top of these *MFCC*, we use as features the patient information such as Height, Weight, Age, as well as more general features of the audio signal such as mean variance and skew.  
-  
-![alt text](Images\mfccs.png "Mel Frequency Cepstrum Coefficients over time")  
---> Mel Frequency Cepstrum Coefficients over time  
-  
-After the preprocess, we define functions that are callable directly by the main file. *get_dataframe* to intitalize the dataframe, *get_X* and *get_y* to load the preprocess data, and other useful functions for specific tasks of the main script.
+Nathan Herzhaft : nathan.herzhaft@polytechnique.edu
+Tom Kasprzak : tom.kasprzak@polytechnique.edu
